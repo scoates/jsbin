@@ -220,7 +220,7 @@ function getCode($code_id, $revision, $testonly = false) {
 function defaultCode($not_found = false) {
   $library = '';
   
-  if (@$_GET['html']) {
+  if (isset($_GET['html']) && $_GET['html']) {
     $html = $_GET['html'];
   } else {
     $html = <<<HERE_DOC
@@ -246,7 +246,7 @@ HERE_DOC;
 
   $javascript = '';
 
-  if (!@$_GET['js']) {
+  if (!isset($_GET['js']) || !$_GET['js']) {
     if ($not_found) {
       $javascript = 'document.getElementById("hello").innerHTML = "<strong>This URL does not have any code saved to it.</strong>";';
     } else {
