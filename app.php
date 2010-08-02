@@ -13,6 +13,7 @@ if ($action) {
 
 if (!$action) {
   // do nothing and serve up the page
+  $revision = null;
 } else if ($action == 'source' || $action == 'js') {
   header('Content-type: text/javascript');
   list($code_id, $revision) = getCodeIdParams($request);
