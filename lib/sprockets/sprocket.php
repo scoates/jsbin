@@ -239,7 +239,8 @@ class Sprocket
 	 */
 	function setFilePath($filePath) {
 		$this->filePath = str_replace($this->baseUri, '..', $filePath);
-		$this->fileExt = array_pop(explode('.', $this->filePath));
+		$parts = explode('.', $this->filePath);
+		$this->fileExt = array_pop($parts);
 		return $this;
 	}
 	
