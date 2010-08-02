@@ -1,6 +1,6 @@
 <?php
 include('config.php'); // contains DB & important versioning
-$request = split('/', preg_replace('/^\//', '', preg_replace('/\/$/', '', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']))));
+$request = explode('/', preg_replace('/^\//', '', preg_replace('/\/$/', '', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']))));
 $action = array_pop($request);
 $edit_mode = true; // determines whether we should go ahead and load index.php
 $code_id = '';
@@ -48,8 +48,8 @@ if (!$action) {
     $revision++;
   }
   
-  $javascript = @$_POST['javascript'];
-  $html = @$_POST['html'];
+  $javascript = isset($_POST['javascript']) ? $_POST['javascript'] : null;
+  $html = isset($_POST['html']) ? $_POST['html'] : null;
   
   // $sql = 'select url, revision from sandbox where javascript="' . mysql_real_escape_string($javascript) . '" and html="' . mysql_real_escape_string($html) . '"';
   // $results = mysql_query($sql);
@@ -65,7 +65,7 @@ if (!$action) {
   
   if ($ajax) {
     // supports plugins making use of JS Bin via ajax calls and callbacks
-    if (@$_REQUEST['callback']) {
+    if (isset($_REQUEST['callback']) && $_REQUEST['callback']) {
       echo $_REQUEST['callback'] . '("';
     }
     $url = 'http://jsbin.com/' . $code_id . ($revision == 1 ? '' : '/' . $revision);
@@ -192,9 +192,10 @@ function getCode($code_id, $revision, $testonly = false) {
   
   if (!mysql_num_rows($result) && $testonly == false) {
     header("HTTP/1.0 404 Not Found");
-    return defaultCode(true);
+    $default = defaultCode(true);
+    return array(0, $default[0], $default[1]);
   } else if (!mysql_num_rows($result)) {
-    return array($revision);
+    return array($revision, null, null);
   } else {
     $row = mysql_fetch_object($result);
     
@@ -208,7 +209,11 @@ function getCode($code_id, $revision, $testonly = false) {
     $revision = $row->revision;
     
     // return array(preg_replace('/\r/', '', $html), preg_replace('/\r/', '', $javascript), $row->streaming, $row->active_tab, $row->active_cursor);
-    return array($revision, get_magic_quotes_gpc() ? stripslashes($html) : $html, get_magic_quotes_gpc() ? stripslashes($javascript) : $javascript, $row->streaming, $row->active_tab, $row->active_cursor);
+    if (get_magic_quotes_gpc()) {
+      $html = stripslashes($html);
+      $javascript = stripslashes($javascript);
+    }
+    return array($revision, $html, $javascript, $row->streaming, $row->active_tab, $row->active_cursor);
   }
 }
 
@@ -251,7 +256,12 @@ HERE_DOC;
     $javascript = $_GET['js'];
   }
 
-  return array(get_magic_quotes_gpc() ? stripslashes($html) : $html, get_magic_quotes_gpc() ? stripslashes($javascript) : $javascript);
+  if (get_magic_quotes_gpc()) {
+    $html = stripslashes($html);
+    $javascript = stripslashes($javascript);
+  }
+
+  return array($html, $javascript);
 }
 
 // I'd consider using a tinyurl type generator, but I've yet to find one.
