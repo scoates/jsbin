@@ -72,23 +72,23 @@ if ($code_id) {
 <?php 
 // construct the correct query string, if we're injecting the html or JS
 $qs = '';
-if (isset($_GET['js']) || isset($_GET['html']) || (@$_POST['inject'] && isset($_POST['html'])) ) {
+if (isset($_GET['js']) || isset($_GET['html']) || ((isset($_POST['inject']) && $_POST['inject']) && isset($_POST['html'])) ) {
   $qs .= '?';
 }
 
-if (@$_GET['js']) {
+if (isset($_GET['js']) && $_GET['js']) {
   $qs .= 'js=' . rawurlencode(stripslashes($_GET['js']));
   
-  if (@$_GET['html']) {
+  if (isset($_GET['html']) && $_GET['html']) {
     $qs .= '&amp;';
   }
 }
 
-if (@$_GET['html']) {
+if (isset($_GET['html']) && $_GET['html']) {
   $qs .= 'html=' . rawurlencode(stripslashes($_GET['html']));
 }
 
-if (@$_POST['inject'] && @$_POST['html']) :
+if (isset($_POST['inject']) && $_POST['inject'] && isset($_POST['html']) && $_POST['html']) :
   $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
   $html = '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $_POST['html']) . '"';
 ?>
