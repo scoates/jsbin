@@ -101,41 +101,38 @@ function defaultCode($not_found = false) {
 
 // I'd consider using a tinyurl type generator, but I've yet to find one.
 // this method also produces *pronousable* urls
-function generateCodeId($tries = 0) {
-  $code_id = generateURL();
-  
-  if ($tries > 2) {
-    $code_id .= $tries;
-  }
-  
-  // check if it's free
-  $sql = sprintf('select id from sandbox where url="%s"', mysql_real_escape_string($code_id));
-  $result = mysql_query($sql);
-
-  if (mysql_num_rows($result)) {
-    $code_id = generateCodeId(++$tries);
-  } else if ($tries > 10) {
-    echo('Too many tries to find a new code_id - please contact using <a href="/about">about</a>');
-    exit;
-  } 
-  
-  return $code_id;
-}
-
-function generateURL() {
+function generateCodeId($tries = 0)
+{
 	// generates 5 char word
-  $vowels = str_split('aeiou');
-  $const = str_split('bcdfghjklmnpqrstvwxyz');
-  
-  $word = '';
-  for ($i = 0; $i < 5; $i++) {
-    if ($i % 2 == 0) { // even = vowels
-      $word .= $vowels[rand(0, 4)]; 
-    } else {
-      $word .= $const[rand(0, 20)];
-    } 
-  }
+	static $vowels = 'aeiou';
+	static $const = 'bcdfghjklmnpqrstvwxyz';
 
-	return $word;
+	for ($tries=0; $tries < 10; $tries++) {
+		$code_id = '';
+		for ($i = 0; $i < 5; $i++) {
+			if ($i % 2) { // even = vowels
+				$code_id .= $const[rand(0, 20)];
+			} else {
+				$code_id .= $vowels[rand(0, 4)]; 
+			} 
+		}
+		
+		if ($tries > 2) {
+			$code_id .= $tries;
+		}
+		
+		// check if it's free
+		$sql = sprintf('select id from sandbox where url="%s"', mysql_real_escape_string($code_id));
+		$result = mysql_query($sql);
+
+		if (!mysql_num_rows($result)) {
+			return $code_id;
+		}
+	}
+
+	// if we get this far, we have exhausted 10 tries
+	echo 'Too many tries to find a new code_id - please contact using <a href="/about">about</a>';
+	exit;
+
 }
 
