@@ -9,4 +9,5 @@ define('JSBIN_DB_HOST', 'localhost');  // 99% chance you won't need to change th
 define('JSBIN_OFFLINE', is_dir('/Users/'));
 
 define('JSBIN_VERSION', JSBIN_OFFLINE ? 'debug' : '2.1.0');
-?>
+
+define('JSBIN_GA_TRACKER_ID', 'UA-1656750-13');
