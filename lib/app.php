@@ -1,5 +1,7 @@
 <?php
-include dirname(__FILE__) . '/config/config.php'; // contains DB & important versioning
+// contains DB & important versioning
+require dirname(__FILE__) . '/../config/config.php';
+
 $request = explode('/', preg_replace('/^\//', '', preg_replace('/\/$/', '', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']))));
 $action = array_pop($request);
 $edit_mode = true; // determines whether we should go ahead and load index.php

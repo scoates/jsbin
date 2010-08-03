@@ -1,4 +1,6 @@
-<?php include('app.php'); 
+<?php
+require dirname(__FILE__) . '/lib/app.php'; 
+
 if ($revision != 1 && $revision) {
   $code_id .= '/' . $revision;
 }
