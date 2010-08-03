@@ -1,6 +1,6 @@
 <?php 
-require_once dirname(__FILE__) . '/config/config.php';
-require_once('lib/sprockets/sprocket.php');
+require_once dirname(__FILE__) . '/../config/config.php';
+require_once dirname(__FILE__) . '/../lib/sprockets/sprocket.php';
  
 // get path from request
 $filePath = preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
@@ -9,7 +9,7 @@ $filePath = preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
 $sprocket = new Sprocket($filePath, array(    
 	'contentType' => 'application/x-javascript',
 	'baseUri' => '../js',
-  'baseFolder' => '/js',
+  'baseFolder' => dirname(__FILE__) . '/../js',
   'assetFolder' => '..',
 	'debugMode' => JSBIN_OFFLINE ? true : false,
   'autoRender' => false
@@ -23,12 +23,12 @@ switch ($sprocket->fileExt)
 		break;
  
 	default: case 'js':
-		$sprocket->setBaseFolder(array('./js/vendor', './js/vendor/codemirror'));
+		$sprocket->setBaseFolder(array('../js/vendor', '../js/vendor/codemirror'));
 		break;
 }
 
 // having to hack the source path to get it work properly.
-$sprocket->filePath = '.' . str_replace(JSBIN_VERSION . '/', '', $sprocket->filePath);
+$sprocket->filePath = '..' . str_replace(JSBIN_VERSION . '/', '', $sprocket->filePath);
 
 // tada!
 $sprocket->render();

@@ -15,7 +15,7 @@ RewriteRule ^(.*)$ http://jsbin.com/$1 [R=301,L]
 RewriteRule js/([0-9\.]+)/(.*)\.js js/$2-$1.js [QSA]
 
 # role a sprocket for offline and debug
-RewriteRule js/debug/.*\.js$ sprocketize.php [QSA]
+RewriteRule js/debug/.*\.js$ lib/sprocketize.php [QSA]
 # RewriteRule \.js$ sprocketize.php [QSA]
 # RewriteRule \.css$ lib/sprocketize.php [QSA]
 
