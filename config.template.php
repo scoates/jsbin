@@ -1,17 +1,12 @@
 <?php
 // database settings
-define('DB_NAME', 'jsbin');
-define('DB_USER', 'jsbin');  // Your MySQL username
-define('DB_PASSWORD', ''); // ...and password
-define('DB_HOST', 'localhost');  // 99% chance you won't need to change this value
+define('JSBIN_DB_NAME', 'jsbin');
+define('JSBIN_DB_USER', 'jsbin');  // Your MySQL username
+define('JSBIN_DB_PASSWORD', ''); // ...and password
+define('JSBIN_DB_HOST', 'localhost');  // 99% chance you won't need to change this value
 
-// change this to suite your offline detection
-define('OFFLINE', is_dir('/Users/'));
+// change this to suit your offline detection
+define('JSBIN_OFFLINE', is_dir('/Users/'));
 
-define('MAJOR', 2);
-define('MINOR', 0);
-define('TINY', 0);
-
-// wishing PHP were more like JavaScript...wishing I was able to use Node.js they way I had wanted...
-define('VERSION', OFFLINE ? 'debug' : join(array(MAJOR, MINOR, TINY), '.'));
+define('JSBIN_VERSION', JSBIN_OFFLINE ? 'debug' : '2.1.0');
 ?>

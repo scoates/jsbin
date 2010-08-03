@@ -96,8 +96,8 @@ if (isset($_POST['inject']) && $_POST['inject'] && isset($_POST['html']) && $_PO
 <?php else : ?>
 <script src="<?=$code_id ? $code_id : '' ?>/source/<?=$qs?>"></script>  
 <?php endif ?>
-<script src="/js/<?=VERSION?>/jsbin.js"></script>
-<?php if (!OFFLINE) : ?>
+<script src="/js/<?=JSBIN_VERSION?>/jsbin.js"></script>
+<?php if (!JSBIN_OFFLINE) : ?>
 <script>
 var _gaq = _gaq || [];
 _gaq.push(['_setAccount', 'UA-1656750-13']);

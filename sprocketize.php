@@ -11,7 +11,7 @@ $sprocket = new Sprocket($filePath, array(
 	'baseUri' => '../js',
   'baseFolder' => '/js',
   'assetFolder' => '..',
-	'debugMode' => OFFLINE ? true : false,
+	'debugMode' => JSBIN_OFFLINE ? true : false,
   'autoRender' => false
 ));
  
@@ -28,7 +28,7 @@ switch ($sprocket->fileExt)
 }
 
 // having to hack the source path to get it work properly.
-$sprocket->filePath = '.' . str_replace(VERSION . '/', '', $sprocket->filePath);
+$sprocket->filePath = '.' . str_replace(JSBIN_VERSION . '/', '', $sprocket->filePath);
 
 // tada!
 $sprocket->render();

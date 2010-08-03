@@ -148,8 +148,8 @@ if (!$edit_mode || $ajax) {
 
 function connect() {
   // sniff, and if on my mac...
-  $link = mysql_connect(DB_HOST, DB_USER, DB_PASSWORD);    
-  mysql_select_db(DB_NAME, $link);
+  $link = mysql_connect(JSBIN_DB_HOST, JSBIN_DB_USER, JSBIN_DB_PASSWORD); 
+  mysql_select_db(JSBIN_DB_NAME, $link);
 }
 
 function encode($s) {
