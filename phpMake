@@ -1,10 +1,11 @@
+#!/usr/bin/env php
 <?php
-require('config.php');
+require dirname(__FILE__) . '/config/config.php';
 
-define('SPROCKETIZED', './js/tmp.' . VERSION . '.js');
-define('PRODUCTION', './js/jsbin-' . VERSION . '.js');
+define('JSBIN_SPROCKETIZED', './js/tmp.' . JSBIN_VERSION . '.js');
+define('JSBIN_PRODUCTION', './js/jsbin-' . JSBIN_VERSION . '.js');
 
-// sprocketize the code in to _jsbin.VERSION.js
+// sprocketize the code in to _jsbin.JSBIN_VERSION.js
 require_once('lib/sprockets/sprocket.php');
 
 echo "Sprocketizing...\n";
@@ -29,12 +30,12 @@ $js = $sprocket->render(true);
 
 // write concat to js dir
 echo "Writing concatenated file...\n";
-file_put_contents(SPROCKETIZED, $js);
+file_put_contents(JSBIN_SPROCKETIZED, $js);
 
-// google compile in to jsbin.VERSION.js
+// google compile in to jsbin.JSBIN_VERSION.js
 echo "Google compiler compressing...\n";
-system('java -jar "./lib/compiler.jar" --js="' . SPROCKETIZED . '" --js_output_file="' . PRODUCTION . '" --warning_level=QUIET');
+system('java -jar "./lib/compiler.jar" --js="' . JSBIN_SPROCKETIZED . '" --js_output_file="' . JSBIN_PRODUCTION . '" --warning_level=QUIET');
 
-unlink(SPROCKETIZED);
-echo "Compressed: " . PRODUCTION . "\nFile size: " . filesize(PRODUCTION) . " bytes.\n";
+unlink(JSBIN_SPROCKETIZED);
+echo "Compressed: " . JSBIN_PRODUCTION . "\nFile size: " . filesize(JSBIN_PRODUCTION) . " bytes.\n";
 ?>
