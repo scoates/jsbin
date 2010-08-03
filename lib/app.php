@@ -1,6 +1,7 @@
 <?php
 // contains DB & important versioning
 require dirname(__FILE__) . '/../config/config.php';
+require dirname(__FILE__) . '/jsbin.php';
 
 $request = explode('/', preg_replace('/^\//', '', preg_replace('/\/$/', '', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']))));
 $action = array_pop($request);
@@ -31,7 +32,7 @@ if (!$action) {
   if ($action == 'js') {
     echo $javascript;
   } else {
-    echo 'var template = { html : ' . encode($html) . ', javascript : ' . encode($javascript) . ' };';    
+		echo 'var template = ' . json_encode(compact('html', 'javascript'));
   }
 } else if ($action == 'edit') {
   list($code_id, $revision) = getCodeIdParams($request);
@@ -123,7 +124,7 @@ if (!$action) {
     $html = $htmlParts[0] . $javascript . $htmlParts[1];
     
     $html = preg_replace("/%code%/", $javascript, $html);
-    $html = preg_replace('/<\/body>/', googleAnalytics() . '</body>', $html);
+    $html = preg_replace('/<\/body>/', jsbin_template('google_analytics.php') . '</body>', $html);
     $html = preg_replace('/<\/body>/', '<script src="/js/render/edit.js"></script>' . "\n</body>", $html);
 
 
@@ -148,177 +149,6 @@ if (!$edit_mode || $ajax) {
   exit;
 }
 
-function connect() {
-  // sniff, and if on my mac...
-  $link = mysql_connect(JSBIN_DB_HOST, JSBIN_DB_USER, JSBIN_DB_PASSWORD); 
-  mysql_select_db(JSBIN_DB_NAME, $link);
-}
-
-function encode($s) {
-  static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
-  return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $s) . '"';
-}
-
-// returns the app loaded with json html + js content
-function edit() {
-  
-}
-
-// saves current state - should I store regardless of content, to start their own
-// milestones? 
-function save() {
-  
-}
-
-function getCodeIdParams($request) {
-  $revision = array_pop($request);
-  $code_id = array_pop($request);
-  
-  if ($code_id == null) {
-    $code_id = $revision;
-    $revision = 1;
-  }
-  
-  return array($code_id, $revision);
-}
-
-function getMaxRevision($code_id) {
-  $sql = sprintf('select max(revision) as rev from sandbox where url="%s"', mysql_real_escape_string($code_id), mysql_real_escape_string($revision));
-  $result = mysql_query($sql);
-  $row = mysql_fetch_object($result);
-  return $row->rev ? $row->rev : 0;
-}
-
-function getCode($code_id, $revision, $testonly = false) {
-  $sql = sprintf('select * from sandbox where url="%s" and revision="%s"', mysql_real_escape_string($code_id), mysql_real_escape_string($revision));
-  $result = mysql_query($sql);
-  
-  if (!mysql_num_rows($result) && $testonly == false) {
-    header("HTTP/1.0 404 Not Found");
-    $default = defaultCode(true);
-    return array(0, $default[0], $default[1]);
-  } else if (!mysql_num_rows($result)) {
-    return array($revision, null, null);
-  } else {
-    $row = mysql_fetch_object($result);
-    
-    // TODO required anymore? used for auto deletion
-    $sql = 'update sandbox set last_viewed=now() where id=' . $row->id;
-    mysql_query($sql);
-    
-    $javascript = preg_replace('/\r/', '', $row->javascript);
-    $html = preg_replace('/\r/', '', $row->html);
-    
-    $revision = $row->revision;
-    
-    // return array(preg_replace('/\r/', '', $html), preg_replace('/\r/', '', $javascript), $row->streaming, $row->active_tab, $row->active_cursor);
-    if (get_magic_quotes_gpc()) {
-      $html = stripslashes($html);
-      $javascript = stripslashes($javascript);
-    }
-    return array($revision, $html, $javascript, $row->streaming, $row->active_tab, $row->active_cursor);
-  }
-}
-
-function defaultCode($not_found = false) {
-  $library = '';
-  
-  if (isset($_GET['html']) && $_GET['html']) {
-    $html = $_GET['html'];
-  } else {
-    $html = <<<HERE_DOC
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset=utf-8 />
-<title>JS Bin</title>
-<!--[if IE]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
-<style>
-  article, aside, figure, footer, header, hgroup, 
-  menu, nav, section { display: block; }
-</style>
-</head>
-<body>
-  <p id="hello">Hello World</p>
-</body>
-</html>
-HERE_DOC;
-  } 
-
-  $javascript = '';
-
-  if (!isset($_GET['js']) || !$_GET['js']) {
-    if ($not_found) {
-      $javascript = 'document.getElementById("hello").innerHTML = "<strong>This URL does not have any code saved to it.</strong>";';
-    } else {
-      $javascript = "if (document.getElementById('hello')) {\n  document.getElementById('hello').innerHTML = 'Hello World - this was inserted using JavaScript';\n}\n";
-    }
-  } else {
-    $javascript = $_GET['js'];
-  }
-
-  if (get_magic_quotes_gpc()) {
-    $html = stripslashes($html);
-    $javascript = stripslashes($javascript);
-  }
-
-  return array($html, $javascript);
-}
-
-// I'd consider using a tinyurl type generator, but I've yet to find one.
-// this method also produces *pronousable* urls
-function generateCodeId($tries = 0) {
-  $code_id = generateURL();
-  
-  if ($tries > 2) {
-    $code_id .= $tries;
-  }
-  
-  // check if it's free
-  $sql = sprintf('select id from sandbox where url="%s"', mysql_real_escape_string($code_id));
-  $result = mysql_query($sql);
-
-  if (mysql_num_rows($result)) {
-    $code_id = generateCodeId(++$tries);
-  } else if ($tries > 10) {
-    echo('Too many tries to find a new code_id - please contact using <a href="/about">about</a>');
-    exit;
-  } 
-  
-  return $code_id;
-}
-
-function generateURL() {
-	// generates 5 char word
-  $vowels = str_split('aeiou');
-  $const = str_split('bcdfghjklmnpqrstvwxyz');
-  
-  $word = '';
-  for ($i = 0; $i < 5; $i++) {
-    if ($i % 2 == 0) { // even = vowels
-      $word .= $vowels[rand(0, 4)]; 
-    } else {
-      $word .= $const[rand(0, 20)];
-    } 
-  }
-
-	return $word;
-}
-
-function googleAnalytics() {
-  return <<<HERE_DOC
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-var pageTracker = _gat._getTracker("UA-1656750-13");
-pageTracker._trackPageview();
-</script>
-HERE_DOC;
-}
 
 
 ?>
