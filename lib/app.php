@@ -2,6 +2,7 @@
 // contains DB & important versioning
 require dirname(__FILE__) . '/../config/config.php';
 require dirname(__FILE__) . '/jsbin.php';
+require dirname(__FILE__) . '/db.php';
 
 $request = explode('/', preg_replace('/^\//', '', preg_replace('/\/$/', '', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']))));
 $action = array_pop($request);
@@ -11,7 +12,7 @@ $ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']);
 
 // doesn't require a connection when we're landing for the first time
 if ($action) {
-  connect();
+  db_connect();
 }
 
 if (!$action) {
@@ -24,7 +25,7 @@ if (!$action) {
   $edit_mode = false;
   
   if ($code_id) {
-    list($latest_revision, $html, $javascript) = getCode($code_id, $revision);
+    list($latest_revision, $html, $javascript) = db_getCode($code_id, $revision);
   } else {
     list($html, $javascript) = defaultCode();
   }
@@ -37,7 +38,7 @@ if (!$action) {
 } else if ($action == 'edit') {
   list($code_id, $revision) = getCodeIdParams($request);
   if ($revision == 'latest') {
-    $latest_revision = getMaxRevision($code_id);
+    $latest_revision = db_getMaxRevision($code_id);
     header('Location: /' . $code_id . '/' . $latest_revision . '/edit');
     $edit_mode = false;
     
@@ -48,7 +49,7 @@ if (!$action) {
     $code_id = generateCodeId();
     $revision = 1;
   } else {
-    $revision = getMaxRevision($code_id);
+    $revision = db_getMaxRevision($code_id);
     $revision++;
   }
   
@@ -63,8 +64,7 @@ if (!$action) {
   //   $code_id = $row->url;
   //   $revision = $row->revision;
   // } else {
-  $sql = sprintf('insert into sandbox (javascript, html, created, last_viewed, url, revision) values ("%s", "%s", now(), now(), "%s", "%s")', mysql_real_escape_string($javascript), mysql_real_escape_string($html), mysql_real_escape_string($code_id), mysql_real_escape_string($revision));
-  mysql_query($sql);
+  db_insert($javascript, $html, $code_id, $revision);
   // }
   
   if ($ajax) {
@@ -99,7 +99,7 @@ if (!$action) {
   if ($action == 'latest') {
     // find the latest revision and redirect to that.
     $code_id = $subaction;
-    $latest_revision = getMaxRevision($code_id);
+    $latest_revision = db_getMaxRevision($code_id);
     header('Location: /' . $code_id . '/' . $latest_revision);
     $edit_mode = false;
   }
@@ -113,7 +113,7 @@ if (!$action) {
       $code_id = $action;
       $revision = 1;
     }
-    list($latest_revision, $html, $javascript) = getCode($code_id, $revision);
+    list($latest_revision, $html, $javascript) = db_getCode($code_id, $revision);
 
     if (stripos($html, '%code%') === false) {
       $html = preg_replace('@</body>@', '<script>%code%</script></body>', $html);
